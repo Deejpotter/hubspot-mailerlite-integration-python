@@ -8,13 +8,17 @@ from src.generalFunctions import CustomJSONEncoder
 
 
 # Contact endpoints
-def get_hubspot_contacts_with_http(hubspot_client):
+def get_hubspot_contacts_with_http(hubspot_client, properties=None):
     """
     Retrieves all HubSpot contacts using the HubSpot Python client library.
+    :param hubspot_client: The HubSpot client instance.
+    :type hubspot_client: HubSpot
+    :param properties: A list of properties to retrieve for the contacts.
+    :type properties: list
     """
     try:
         # Fetch the first page of contacts
-        hubspot_contacts = hubspot_client.crm.contacts.basic_api.get_page()
+        hubspot_contacts = hubspot_client.crm.contacts.basic_api.get_page(properties=properties)
         return hubspot_contacts.results
     except ContactsApiException as e:
         print("Error:", e)
@@ -61,9 +65,13 @@ def search_hubspot_contact_by_email_with_properties(hubspot_client, email, prope
     Searches for a HubSpot contact by email and retrieves specific properties.
 
     :param hubspot_client: The HubSpot client instance.
+    :type hubspot_client: HubSpot
     :param email: The email of the contact to search for.
+    :type email: str
     :param properties: A list of properties to retrieve for the contact.
+    :type properties: list
     :return: A list of contacts matching the email with specified properties.
+    :rtype: list
     """
     try:
         # Define the filter for the search
