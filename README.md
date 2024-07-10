@@ -24,12 +24,14 @@ The MailerLite integration for HubSpot doesn't sync all the data we need by defa
 
 ## Setup
 
-First, make sure you have PHP and Composer installed on your machine.
+First, make sure you have Python installed on your machine.
 
 Clone the repository and run:
 
 ```bash
-composer install
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+pip install -r requirements.txt
 ```
 
 Create a `.env` file in the root directory and add the following variables:
@@ -41,25 +43,23 @@ MAILERLITE_API_KEY=your_mailerlite_api_key
 
 ## Usage
 
-Composer isn't required to run the integration, but it's used to manage the dependencies.
-
-To run the integration, we can just move the folder to the server and execute the following command as a cron job or manually in the terminal.
+To run the integration, you can execute the following command manually in the terminal or set it up as a cron job.
 
 In the terminal, run:
 
 ```bash
-php path/to/project/index.php
+python path/to/project/main.py
 ```
 
 As a cron job, you can add the following line to the crontab file to run the integration every hour:
 
 ```bash
-0 * * * * php path/to/project/index.php
+0 * * * * /path/to/python /path/to/project/main.py
 ```
 
 Or set it up using an interface like cPanel.
 
-This will run the index.php file which will use the HubSpot and MailerLite APIs to sync the data.
+This will run the main.py file which will use the HubSpot and MailerLite APIs to sync the data.
 
 ## Technical Details
 
@@ -88,47 +88,59 @@ Based on the information gathered from the MailerLite and HubSpot developers' do
 
 #### Usage Example
 
-Find the php client library for MailerLite [here](https://github.com/mailerlite/mailerlite-php-sdk).
+Find the php client library for MailerLite [here](https://github.com/mailerlite/mailerlite-python).
 
-```php
-// Get the API key from environment variable
-$mailerliteApiKey = $_ENV['MAILERLITE_API_KEY'];
-// Initialize the MailerLite client
-$mailerlite = new MailerLite(['apiKey' => $mailerliteApiKey]);
-// Get all subscribers
-$subscribers = $mailerlite->subscribers->get();
+```python
+# Get the API key from environment variable
+mailerlite_api_key = os.getenv('MAILERLITE_API_KEY')
+
+# Initialize the MailerLite client
+headers = {
+  'Content-Type': 'application/json',
+  'Authorization': f'Bearer {mailerlite_api_key}'
+}
+
+# Get all subscribers
+response = requests.get('https://api.mailerlite.com/api/v2/subscribers', headers=headers)
+subscribers = response.json()
 ```
 
 ### HubSpot API Overview
 
 #### HubSpot Data Structure
 
-HubSpot's API is extensive, covering various entities such as Contacts, Companies, Deals, and more. Each entity has its own set of properties and relationships. I couldn't find specific links to the data structure.
+HubSpot's API is extensive, covering various entities such as Contacts, Companies, Deals, and more. Each entity has its own set of properties and relationships. You can find
+specific details in the HubSpot API documentation.
 
 #### HubSpot Key APIs
 
 Here are some of the key endpoints that seem to be available:
 
 - **Contacts**: Manage contact information, including creating new contacts, updating existing ones, and fetching contact information.
-- **Companies**: Similar to contacts but for company entities.
 - **Deals**: Manage sales deals, including tracking deal stages and associated contact or company information.
 
 #### HubSpot Usage Example
 
-Find the php client library for HubSpot [here](https://github.com/HubSpot/hubspot-api-php).
+Find the php client library for HubSpot [here](https://github.com/HubSpot/hubspot-api-python).
 
-```php
-// Get the API key from environment variable
-$hubspotApiKey = $_ENV['HUBSPOT_API_KEY'];
-// Initialize the HubSpot client using the factory method createWithAccessToken()
-$hubspot = \HubSpot\Factory::createWithAccessToken($hubspotApiKey);
-// Get all contacts from HubSpot
-$hubspotContacts = $hubspot->crm()->contacts()->basicApi()->getPage(
-  [
-    'limit' => 100, // Limit the number of contacts per page. Default is 10.
-    'properties' => ['email', 'firstname', 'lastname'], // Specify the properties to fetch. Default is all properties.
-  ]
-);
+```python
+import os
+from hubspot import HubSpot
+from hubspot.crm.contacts import ApiException as ContactsApiException
+
+# Get the API key from environment variable
+hubspot_api_key = os.getenv('HUBSPOT_API_KEY')
+
+# Initialize the HubSpot client
+hubspot_client = HubSpot(api_key=hubspot_api_key)
+
+# Get all contacts from HubSpot
+try:
+  hubspot_contacts = hubspot_client.crm.contacts.basic_api.get_page()
+  contacts = hubspot_contacts.results
+except ContactsApiException as e:
+  print("Error:", e)
+
 ```
 
 ### Integration Logic
@@ -143,6 +155,7 @@ This process ensures that your HubSpot contacts are synced with your MailerLite 
 
 ### Considerations
 
-- **Rate Limits**: Both HubSpot and MailerLite have API rate limits. Ensure your integration handles rate limiting gracefully, possibly by implementing retries with exponential backoff.
+- **Rate Limits**: Both HubSpot and MailerLite have API rate limits. Ensure our integration handles rate limiting gracefully, possibly by implementing retries with exponential 
+  backoff.
 - **Authentication**: Both HubSpot and MailerLite require API keys for authentication at the time of writing this. This project uses a Private App API key for HubSpot and a MailerLite API key.
 - **Data Mapping**: Data from HubSpot and MailerLite don't exactly match. Especially with custom fields, the integration needs to map fields correctly to avoid errors or exceptions.
