@@ -29,8 +29,11 @@ First, make sure you have Python installed on your machine.
 Clone the repository and run:
 
 ```bash
+# Create a virtual environment
 python -m venv venv
+# Activate the env
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+# Install the requirements
 pip install -r requirements.txt
 ```
 
