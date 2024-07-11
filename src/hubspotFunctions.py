@@ -25,7 +25,7 @@ def get_hubspot_contacts_with_http(hubspot_client, properties=None):
         return None
 
 
-def get_limited_hubspot_contacts_with_http(hubspot_client, limit=10):
+def get_limited_hubspot_contacts_with_http(hubspot_client, properties=None, limit=10):
     """
     Retrieves a limited number of HubSpot contacts using the HubSpot Python client library.
     """

@@ -57,7 +57,7 @@ python path/to/project/main.py
 As a cron job, you can add the following line to the crontab file to run the integration every hour:
 
 ```bash
-0 * * * * /path/to/python /path/to/project/main.py
+0 * * * * /path/to/venv/Scripts/python.exe /path/to/project/main.py
 ```
 
 Or set it up using an interface like cPanel.
