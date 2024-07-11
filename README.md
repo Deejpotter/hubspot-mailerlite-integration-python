@@ -24,16 +24,27 @@ The MailerLite integration for HubSpot doesn't sync all the data we need by defa
 
 ## Setup
 
-First, make sure you have Python installed on your machine.
+First, make sure you have Python installed on your machine. This project was tested using version 3.11.
 
-Clone the repository and run:
+Clone the repository and run the following commands in the project directory:
 
+Create a virtual environment:
 ```bash
-# Create a virtual environment
 python -m venv venv
-# Activate the env
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-# Install the requirements
+```
+
+Activate the virtual environment:
+On Windows:
+```bash
+venv\Scripts\activate
+```
+On MacOS/Linux:
+```bash
+source venv/bin/activate
+```
+
+Install the requirements:
+```bash
 pip install -r requirements.txt
 ```
 
@@ -48,10 +59,10 @@ MAILERLITE_API_KEY=your_mailerlite_api_key
 
 To run the integration, you can execute the following command manually in the terminal or set it up as a cron job.
 
-In the terminal, run:
+Navigate to the project directory and run:
 
 ```bash
-python path/to/project/main.py
+python main.py
 ```
 
 As a cron job, you can add the following line to the crontab file to run the integration every hour:
@@ -59,6 +70,7 @@ As a cron job, you can add the following line to the crontab file to run the int
 ```bash
 0 * * * * /path/to/venv/Scripts/python.exe /path/to/project/main.py
 ```
+The numbers at the start of the cron job line represent the minute, hour, day of the month, month, and day of the week when the job should run. You can customize these values based on your requirements.
 
 Or set it up using an interface like cPanel.
 
@@ -72,17 +84,16 @@ Based on the information gathered from the MailerLite and HubSpot developers' do
 
 #### Data Structure
 
-- **[Subscribers](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#subscriber)**: The primary entity in MailerLite. Each subscriber has attributes such as `email`, `name`, `last_name`, `status` (active, unsubscribed, unconfirmed, bounced, junk), `subscribed_at`, `unsubscribed_at`, and custom fields.
-- **[Campaigns](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#campaign)**: Used to send email campaigns to subscribers. Each campaign has attributes like `subject`, `from`, `reply_to`, `sent_at`, `opened_at`, `clicked_at`, and more.
-- **[Groups](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#group-api)**: Used to organize subscribers into different groups. Each group has attributes like `name`, `description`, `created_at`, and `updated_at`.
-- **[Segments](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#segment-api)**: Used to segment subscribers based on conditions. Each segment has attributes like `name`, `description`, `created_at`, `updated_at`, and `conditions`.
-- **[Fields](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#field-api)**: Custom fields that can be added to subscribers to store additional information. Each field has attributes like `name`, `type`, `created_at`, and `updated_at`.
-- **[Forms](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#form-api)**: Used to create subscription forms to capture new subscribers. Each form has attributes like `name`, `code`, `created_at`, and `updated_at`.
-- **[Automations](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#automation-api)**: Used to create automated workflows based on subscriber actions. Each automation has attributes like `name`, `type`, `created_at`, and `updated_at`.
-- **[Webhooks](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#webhook-api)**: Used to set up webhooks for real-time notifications of subscriber actions. Each webhook has attributes like `url`, `events`, `created_at`, and `updated_at`.
-- **[CampaignLanguages](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#campaign-language-api)**: Used to set the language for campaigns. Each language has attributes like `code`, `name`, `created_at`, and `updated_at`.
-- **[Timezones](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#timezone-api)**: Used to set the timezone for subscribers. Each timezone has attributes like `name`, `offset`, `created_at`, and `updated_at`.
-- **[Batches](https://github.com/mailerlite/mailerlite-php?tab=readme-ov-file#batch-api)**: Used to manage batch operations like importing or exporting subscribers. Each batch has attributes like `status`, `type`, `created_at`, and `updated_at`.
+This is a high-level overview of what I think are the most relevant entities in MailerLite:
+
+- **[Subscribers](https://developers.mailerlite.com/docs/subscribers.html)**: The primary entity in MailerLite. Each subscriber has attributes such as `email`, `name`, `last_name`, `status` (active, unsubscribed, unconfirmed, bounced, junk), `subscribed_at`, `unsubscribed_at`, and custom fields.
+- **[Campaigns](https://developers.mailerlite.com/docs/campaigns.html)**: Used to send email campaigns to subscribers. Each campaign has attributes like `subject`, `from`, `reply_to`, `sent_at`, `opened_at`, `clicked_at`, and more.
+- **[Groups](https://developers.mailerlite.com/docs/groups.html)**: Used to organize subscribers into different groups. Each group has attributes like `name`, `description`, `created_at`, and `updated_at`.
+- **[Segments](https://developers.mailerlite.com/docs/segments.html)**: Used to segment subscribers based on conditions. Each segment has attributes like `name`, `description`, `created_at`, `updated_at`, and `conditions`.
+- **[Fields](https://developers.mailerlite.com/docs/fields.html)**: Custom fields that can be added to subscribers to store additional information. Each field has attributes like `name`, `type`, `created_at`, and `updated_at`.
+- **[Forms](https://developers.mailerlite.com/docs/forms.html)**: Used to create subscription forms to capture new subscribers. Each form has attributes like `name`, `code`, `created_at`, and `updated_at`.
+- **[Automations](https://developers.mailerlite.com/docs/automations.html)**: Used to create automated workflows based on subscriber actions. Each automation has attributes like `name`, `type`, `created_at`, and `updated_at`.
+- **[Batches](https://developers.mailerlite.com/docs/batching.html)**: Used to manage batch operations like importing or exporting subscribers. Each batch has attributes like `status`, `type`, `created_at`, and `updated_at`.
 
 #### Key APIs
 
@@ -91,11 +102,14 @@ Based on the information gathered from the MailerLite and HubSpot developers' do
 
 #### Usage Example
 
-Find the php client library for MailerLite [here](https://github.com/mailerlite/mailerlite-python).
+The client library doesn't seem to support pagination at the time of writing this so I'm using the requests library to make the API calls.
 
 ```python
 # Get the API key from environment variable
 mailerlite_api_key = os.getenv('MAILERLITE_API_KEY')
+
+# Base URL for the Mailerlite subscribers API
+base_url = "https://connect.mailerlite.com/api/subscribers"
 
 # Initialize the MailerLite client
 headers = {
@@ -103,8 +117,9 @@ headers = {
   'Authorization': f'Bearer {mailerlite_api_key}'
 }
 
-# Get all subscribers
-response = requests.get('https://api.mailerlite.com/api/v2/subscribers', headers=headers)
+# Make a GET request to the Mailerlite API using the requests library.
+# Pass in the base URL as well as the headers, and query parameters if needed.
+response = requests.get(base_url, headers=headers, params=params)
 subscribers = response.json()
 ```
 
@@ -113,7 +128,7 @@ subscribers = response.json()
 #### HubSpot Data Structure
 
 HubSpot's API is extensive, covering various entities such as Contacts, Companies, Deals, and more. Each entity has its own set of properties and relationships. You can find
-specific details in the HubSpot API documentation.
+specific details in the [HubSpot API documentation](https://developers.hubspot.com/docs/api/crm/contacts).
 
 #### HubSpot Key APIs
 
@@ -124,7 +139,7 @@ Here are some of the key endpoints that seem to be available:
 
 #### HubSpot Usage Example
 
-Find the php client library for HubSpot [here](https://github.com/HubSpot/hubspot-api-python).
+The 
 
 ```python
 import os

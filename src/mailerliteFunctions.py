@@ -3,59 +3,77 @@ import time
 import requests
 
 
-# Function to retrieve MailerLite subscribers
-def get_all_mailerlite_subscribers(client):
+# Function to retrieve Mailerlite subscribers using direct API calls
+def get_all_mailerlite_subscribers(api_key):
     """
-    Retrieves all subscribers from MailerLite using the provided API key.
-    Starts with the first page and continues until all subscribers are fetched.
-    :param client: The MailerLite client.
-    :type client: Client
+    Retrieves all subscribers from Mailerlite using direct API calls.
+    Uses cursor-based pagination to fetch all subscribers.
+    :param api_key: The Mailerlite API key.
+    :type api_key: str
     :return: A list of all subscribers as JSON objects.
-    rtype list
+    :rtype: list
     """
 
     # Initialise an empty list to store all subscribers.
     all_subscribers = []
-    # Number of subscribers per request
+    # Number of subscribers per request. Maximum is 100.
     per_page = 100
-    # Initialize cursor
+    # Initialise the cursor to None for the first request.
     cursor = None
+    # Base URL for the Mailerlite subscribers API
+    base_url = "https://connect.mailerlite.com/api/subscribers"
+
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
 
     while True:
-        # Make a GET request to the Mailerlite API using the client
-        # If the cursor is None, send the first request without a cursor
-        if cursor is None:
-            response = client.subscribers.list(limit=per_page)
-        else:
-            response = client.subscribers.list(limit=per_page, cursor=cursor)
+        # Initialise the query parameters for the request. Create a dictionary with the limit key set to the per_page value.
+        params = {'limit': per_page}
+        # If the cursor is not None, also add the cursor key to the dictionary.
+        if cursor:
+            params['cursor'] = cursor
 
-        # Check for rate limiting and handle it
-        if response.get("error", {}).get("code") == 429:
+        # Make a GET request to the Mailerlite API using the requests library.
+        # Pass in the base URL, headers, and query parameters.
+        response = requests.get(base_url, headers=headers, params=params)
+        # Get the response data as a JSON object for easier processing.
+        response_data = response.json()
+
+        # Check for rate limiting and handle it.
+        # If the status code is 429, it means the rate limit has been exceeded and we should wait for 60 seconds.
+        if response.status_code == 429:
             print("Rate limit exceeded. Waiting for 60 seconds...")
             time.sleep(60)
             continue
 
-        # Check for unauthorized access
-        if response.get("error", {}).get("code") == 401:
+        # If the status code is 401, it means unauthorized access. Check the API key is correct and being passed correctly.
+        if response.status_code == 401:
             print("Unauthorized access. Please check your API key.")
             break
 
-        # Check for other possible errors
-        if "error" in response:
-            print(f"Error: {response['error']['message']}")
+        # If the status code is not 200, there was some other error. Print the error message and break the loop.
+        if response.status_code != 200:
+            print(f"Error: {response_data.get('message', 'Unknown error')}")
             break
 
-        # Add the current page of subscribers to the list
-        all_subscribers.extend(response.get("data", []))
+        # Add the current page of subscribers to the list by extracting the 'data' key from the response.
+        subscribers = response_data.get("data", [])
+        # Then add the subscribers to the all_subscribers list using the extend method.
+        all_subscribers.extend(subscribers)
 
-        # Debugging information
-        print(f"Retrieved {len(response.get('data', []))} subscribers")
+        # Print the number of subscribers retrieved on this page for debugging purposes.
+        print(f"Retrieved {len(subscribers)} subscribers")
 
-        # Check if there's a next cursor
-        cursor = response.get("meta", {}).get("next_cursor")
+        # Get the next cursor value from the 'meta' key in the response data.
+        cursor = response_data.get("meta", {}).get("next_cursor")
+
+        # If there is no next cursor, we have reached the end of the subscribers list so we can break the loop.
         if not cursor:
             break
 
+    # Finally, return the list of all subscribers.
     return all_subscribers
 
 
