@@ -35,6 +35,7 @@ class CustomJSONEncoder(json.JSONEncoder):
     Custom JSON encoder to handle datetime objects.
     Datetime objects are converted to ISO 8601 string format which is compatible with JSON serialization.
     """
+
     def default(self, obj):
         if isinstance(obj, datetime):
             # Convert datetime objects to ISO 8601 string format

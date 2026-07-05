@@ -11,7 +11,7 @@ def send_email(subject, message, to_email):
     smtp_password = "your_password"
     from_email = smtp_user
 
-    # Setup the MIME
+    # Set up the MIME
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
